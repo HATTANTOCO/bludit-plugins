@@ -2,9 +2,9 @@
 	"author": "novafacile",
 	"email": "",
 	"website": "https://bludit-plugins.com",
-	"version":"1.4.2",
-	"releaseDate": "2022-03-15",
+	"version":"1.5.0",
+	"releaseDate": "2026-04-09",
 	"license": "All rights reserved",
-	"compatible": "3.13.1",
+	"compatible": "3.19.0",
 	"notes": "This is the lite version of the plugin \"ImageGallery for Bludit\". - https://bludit-plugins.com"
 }

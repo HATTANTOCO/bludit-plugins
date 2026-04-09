@@ -21,7 +21,16 @@ class AJAX {
   }
 
   private static function checkSession(){
-    session_name('BLUDIT-KEY');
+    $sessionName = 'BLUDIT-KEY';
+    $isHTTPS = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || 
+               (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443) ||
+               (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+    
+    if ($isHTTPS) {
+      $sessionName = '__Secure-' . $sessionName;
+    }
+    
+    session_name($sessionName);
     session_start();
     if(!isset($_SESSION['s_role'])){
       self::exit(401);

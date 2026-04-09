@@ -48,6 +48,7 @@
   "create-album": "Criar álbum",
   "edit-album": "Editar álbum",
   "set-album-name": "Definir nome do álbum",
+  "album-title": "título do álbum",
   "album-name-is-also-the-name-of-the-folder-on-the-server": "O nome do álbum é também o nome da pasta no servidor.",
   "if-no-title-is-entered,-the-album-name-will-be-used-for-display": "Se nenhum título for inserido, o nome do álbum será usado para exibição.",
   "sorting": "Ordenação",

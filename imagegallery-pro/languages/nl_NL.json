@@ -48,6 +48,7 @@
   "create-album": "Album aanmaken",
   "edit-album": "Album bewerken",
   "set-album-name": "Set Album Name",
+  "album-title": "Albumtitel",
   "album-name-is-also-the-name-of-the-folder-on-the-server": "Albumnaam is ook de naam van de map op de server.",
   "if-no-title-is-entered,-the-album-name-will-be-used-for-display": "Als er geen titel is ingevoerd, wordt de albumnaam gebruikt voor weergave.",
   "sorting": "Sorteren",

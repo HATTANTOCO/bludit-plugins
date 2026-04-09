@@ -50,6 +50,18 @@ function uploadImage($pluginPath, $albumDir, $config){
     return false;
   }
 
+  $tempFile = $_FILES['file']['tmp_name'];
+
+  $imageInfo = @getimagesize($tempFile);
+  if ($imageInfo === false) {
+    return false;
+  }
+
+  $allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+  if (!in_array($imageInfo['mime'], $allowedMimeTypes)) {
+    return false;
+  }
+
   $imageSettings = [
     'thumb' => [
       'cacheName' => 'thumb',
@@ -66,17 +78,16 @@ function uploadImage($pluginPath, $albumDir, $config){
   ];
 
   $fileName = sanitizeFilename($_FILES['file']['name']);
-  $tempFile = $_FILES['file']['tmp_name'];
   $file = $albumDir.DS.$fileName;
   $cache = $albumDir.DS.'cache';
   $success = false;
 
   if(!file_exists($albumDir)) {
-    mkdir($albumDir, 0755);
+    mkdir($albumDir, 0755, true);
   }
 
   if(!file_exists($cache)) {
-    mkdir($cache, 0755);
+    mkdir($cache, 0755, true);
   }
 
   $success = move_uploaded_file($tempFile,$file);
@@ -84,23 +95,28 @@ function uploadImage($pluginPath, $albumDir, $config){
     return false;
   }
 
-  // create thumb & large
   require $pluginPath.DS.'vendors'.DS.'SimpleImage.php';
   require $pluginPath.DS.'vendors'.DS.'novaImage.php';
 
-  foreach ($imageSettings as $value) {
-    $cacheName = $value['cacheName'];
-    $cacheDir = $cache.DS.$cacheName;
-    $cacheFile = $cacheDir.DS.$fileName;
-    
-    if(!file_exists($cacheDir)){
-      mkdir($cacheDir, 0755);
-    }
+  try {
+    foreach ($imageSettings as $value) {
+      $cacheName = $value['cacheName'];
+      $cacheDir = $cache.DS.$cacheName;
+      $cacheFile = $cacheDir.DS.$fileName;
+      
+      if(!file_exists($cacheDir)){
+        mkdir($cacheDir, 0755, true);
+      }
 
-    $image = new \novafacile\novaImage($file);
-    $image->resize($value['size'],$value['size'],$value['format']);
-    $image->toFile($cacheFile, $value['quality']);
+      $image = new \novafacile\novaImage($file);
+      $image->resize($value['size'],$value['size'],$value['format']);
+      $image->toFile($cacheFile, $value['quality']);
+    }
+  } catch (\Exception $e) {
+    @unlink($file);
+    return false;
   }
+
   return true;
 }
 

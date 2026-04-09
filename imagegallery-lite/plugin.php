@@ -6,11 +6,11 @@
  * @subpackage ImageGallery Lite
  * @category   Plugins
  * @author     novafacile OÜ
- * @copyright  2022 by novafacile OÜ
+ * @copyright  2022-2026 by novafacile OÜ
  * @license    AGPL-3.0
- * @version    1.4.2
+ * @version    1.5.0
  * @see        https://bludit-plugins.com
- * @release    2022-03-15
+ * @release    2026-04-09
  * @notes      based on PHP Image Gallery novaGallery - https://novagallery.org
  * This program is distributed in the hope that it will be useful - WITHOUT ANY WARRANTY.
  */
@@ -73,7 +73,8 @@ class pluginImageGalleryLite extends Plugin {
   	$imageGalleryAdminPath = HTML_PATH_ADMIN_ROOT."imagegallery-lite";
   	$currentPath = strtok($_SERVER["REQUEST_URI"],'?');
   	if($currentPath == $imageGalleryAdminPath){
-  		ob_start();
+      checkRole(['admin','editor']);
+      ob_start();
   	}
   }
 
@@ -81,21 +82,49 @@ class pluginImageGalleryLite extends Plugin {
   	$imageGalleryAdminPath = HTML_PATH_ADMIN_ROOT."imagegallery-lite";
   	$currentPath = strtok($_SERVER["REQUEST_URI"],'?');
   	if($currentPath == $imageGalleryAdminPath){
+      checkRole(['admin','editor']);
+
    		// Fetch Content
       $content = ob_get_contents();
       ob_end_clean();
   
-  		// load ImageGallery album admin
-  		$html = 'ImageGallery Admin Content';
-  		
-  		$album = 'album';
-    	$domainPath = $this->domainPath();
+  		// load settings
+      global $L;
+      require_once('vendors/novaGallery.php');
+      require_once('app/BluditImageGallery.php');
+      require_once('app/BluditImageGalleryAdmin.php');
+      $config['imagesSort'] = $this->getValue('default-image-sort');
+      $domainPath = $this->domainPath();
+      $html = '';
+
+      // load gallery
+      $gallery = new novafacile\BluditImageGalleryAdmin($config, true);
   		
   		// get helper object
-	    require_once('app/BluditImageGalleryHelper.php');
+      require_once('app/BluditImageGalleryHelper.php');
 	    $helper = new \novafacile\BluditImageGalleryHelper();
 	
-	    // load required JS
+      // Load CSS
+      $html .= $this->includeCSS('dropzone.min.css');
+      $html .= $this->includeCSS('simple-lightbox.min.css');
+      $html .= $this->includeCSS('jquery-confirm.min.css');
+      $html .= $this->includeCSS('imagegallery-admin.css');
+
+      // get admin content
+      $album = 'album';
+
+      // Page Title
+      $html .= Bootstrap::pageTitle(['icon' => 'photo', 'title' => 'ImageGallery Lite']);
+
+      // Upload
+      $html .= Bootstrap::formTitle(array('title' => '<i class="fa fa-upload mt-4"></i> '.$L->get('Upload')));
+      $html .= $gallery->outputUploadForm();
+
+      // Image List
+      $html .= Bootstrap::formTitle(array('title' => '<i class="fa fa-image"></i> '.$L->get('Images')));
+      $html .= $gallery->outputImagesAdmin($album);
+
+	    // Load Required JS
 	    $html .= $this->includeJS('simple-lightbox.min.js');
 	    $html .= $this->includeJS('jquery-confirm.min.js');
 	    $html .= $helper->adminJSData($domainPath);
@@ -139,22 +168,12 @@ class pluginImageGalleryLite extends Plugin {
   // Shortcut on sidebar
   public function adminSidebar() {
     global $L;
-    return '<a class="nav-link" href="'.$this->pluginUrl().'">'.$L->get('Image Gallery').'</a>';
+    return '<a class="nav-link" href="'.HTML_PATH_ADMIN_ROOT.'imagegallery-lite">'.$L->get('Image Gallery').'</a>';
   }
 
   // config form
   public function form() {
     global $L, $staticPages;
-
-    // Load Settings
-    require_once('vendors/novaGallery.php');
-    require_once('app/BluditImageGallery.php');
-    require_once('app/BluditImageGalleryAdmin.php');
-    $album = 'album';
-    $config['imagesSort'] = $this->getValue('default-image-sort');
-     
-    // load gallery
-    $gallery = new novafacile\BluditImageGalleryAdmin($config, true);
 
     /*** form start ***/
     $html = "\n";
@@ -167,33 +186,19 @@ class pluginImageGalleryLite extends Plugin {
     $html .= '<div class="tab-content imagegallery-form" id="nav-tabContent">';
     $html .= '<nav class="mb-3">
       <div class="nav nav-tabs" id="nav-tab" role="tablist">
-        <a class="nav-item nav-link active" id="nav-imagegallery-image-tab" data-toggle="tab" href="#imagegallery-images" role="tab" aria-controls="nav-imagegallery-images" aria-selected="true">'.$L->get('Images').'</a>
-        <a class="nav-item nav-link" id="nav-imagegallery-settings-tab" data-toggle="tab" href="#imagegallery-settings" role="tab" aria-controls="nav-imagegallery-settings" aria-selected="false">'.$L->get('Settings').'</a>
+        <a class="nav-item nav-link active" id="nav-imagegallery-settings-tab" data-toggle="tab" href="#imagegallery-settings" role="tab" aria-controls="nav-imagegallery-settings" aria-selected="false">'.$L->get('Settings').'</a>
         <!-- <a class="nav-item nav-link" id="nav-imagegallery-pro-settings-tab" data-toggle="tab" href="#imagegallery-pro-settings" role="tab" aria-controls="nav-imagegallery-pro-settings" aria-selected="false">'.$L->get('ImageGallery Pro').'</a> -->
       </div>
     </nav>
     ';
 
-    /*** Images ***/
-    $html .= '<div class="tab-pane fade show active" id="imagegallery-images" role="tabpanel" aria-labelledby="imagegallery-image-tab">';
-    $album = 'album';
-    
-    // Upload
-    $html .= Bootstrap::formTitle(array('title' => '<i class="fa fa-upload mt-4"></i> '.$L->get('Upload')));
-    $html .= '<p>'.$L->get('File names of uploaded images will be modified for maximum compatibility (e.g. no spaces & special characters, lower case). Images with the same file name will be overwritten.').'</p>';
-    $html .= '<div class="dropzone mb-2" id="imagegallery-upload" style="border-style:dotted;"></div>';
-    $html .= '<div class="w-100 text-center mb-5"><a href="'.$_SERVER['REQUEST_URI'].'" class="d-none btn btn-primary px-4" id="imagegallery-reload-button">'.$L->get('Reload page').'</a></div>';
-  
-    // Image List
-    $html .= Bootstrap::formTitle(array('title' => '<i class="fa fa-image"></i> '.$L->get('Images')));
-    $html .= $gallery->outputImagesAdmin($album);
-  
-    // close images
-    $html .= '</div>';
-
-
    /*** Settings ***/
-    $html .= '<div class="tab-pane fade" id="imagegallery-settings" role="tabpanel" aria-labelledby="imagegallery-settings-tab">';
+    $html .= '<div class="tab-pane fade show active" id="imagegallery-settings" role="tabpanel" aria-labelledby="imagegallery-settings-tab">';
+
+    $html .= Bootstrap::formTitle(array('title' => $L->get('Images')));
+    $html .= '<p><a href="'.HTML_PATH_ADMIN_ROOT.'imagegallery-lite" class="btn btn-primary">'.$L->get('Manage Images').'</a></<p>';
+
+
     $html .= Bootstrap::formTitle(array('title' => $L->get('Settings')));
     $html .= '<p>'.$L->get('Settings for ImageGallery').'</p>';
 

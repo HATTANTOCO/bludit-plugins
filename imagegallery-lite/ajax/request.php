@@ -30,7 +30,7 @@ foreach ($_POST as $key => $value) {
   if(strpos($value, '..'.DS) !== false){
     AJAX::exit();
   }
-  $value = filter_var($value, FILTER_SANITIZE_STRING);
+  $value = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
   $_POST[$key] = $value;
 }
 
