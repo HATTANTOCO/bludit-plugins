@@ -55,7 +55,7 @@ class Config {
     if (file_put_contents($this->file, $data, LOCK_EX)) { // LOCK_EX flag to prevent anyone else writing to the file at the same time.
       return true;
     } else {
-      Log::set(__METHOD__.LOG_SEP.'Error occurred when trying to save the database file.', LOG_TYPE_ERROR);
+      //Log::set(__METHOD__.LOG_SEP.'Error occurred when trying to save the database file.', LOG_TYPE_ERROR);
       return false;
     }
   }
