@@ -8,9 +8,9 @@
  * @author     novafacile OÜ
  * @copyright  2022-2026 by novafacile OÜ
  * @license    AGPL-3.0
- * @version    1.5.0
+ * @version    1.5.1
  * @see        https://bludit-plugins.com
- * @release    2026-04-09
+ * @release    2026-04-11
  * @notes      based on PHP Image Gallery novaGallery - https://novagallery.org
  * This program is distributed in the hope that it will be useful - WITHOUT ANY WARRANTY.
  */
@@ -43,7 +43,7 @@ class pluginImageGalleryLite extends Plugin {
     if(file_exists($storage)){
       $this->db['protect-storage'] = true;
     } else {
-      Filesystem::mkdir($storage, true);
+      Filesystem::mkdir($storage);
     }
     return $this->save();
   }
@@ -52,7 +52,7 @@ class pluginImageGalleryLite extends Plugin {
     parent::uninstall();
     // delete storage
     if(!$this->getValue('protect-storage')){
-      Filesystem::deleteRecursive($this->storage());  
+      Filesystem::deleteRecursive(PATH_CONTENT.$this->storageRoot);  
     }
     return true;
   }
