@@ -2,7 +2,7 @@
 /**
  * AJAX request handler for Bludit Image Gallery Lite
  * @author    novafacile OÜ
- * @copyright 2022 by novafacile OÜ
+ * @copyright 2022-2026 by novafacile OÜ
  * @license   AGPL-3.0
  * @see       https://bludit-plugins.com
  * This program is distributed in the hope that it will be useful - WITHOUT ANY WARRANTY.
@@ -11,7 +11,16 @@
 define('BLUDIT', true);
 define('DS', DIRECTORY_SEPARATOR);
 
-// Load AJAX Helper Object
+// DEBUG Settings
+define('DEBUG', 'false');
+
+if(DEBUG){
+  ini_set('display_errors', '1');
+  ini_set('display_startup_errors', '1');
+  error_reporting(E_ALL);
+}
+
+// Load Helper Classes
 require 'AJAX.php';
 
 // set JSON Header
@@ -37,8 +46,8 @@ foreach ($_POST as $key => $value) {
 // set vars
 $action = $_POST['action']; // Todo: some protection
 $success = false;
+$basePath = dirname( __FILE__, 4);
 $pluginPath = dirname(pathinfo(__FILE__, PATHINFO_DIRNAME));
-$basePath = dirname( __FILE__, 4); // Bludit3 Base
 $storageRoot = 'imagegallery';
 $storage = $basePath.DS.'bl-content'.DS.$storageRoot;
 $configFile = $basePath.DS.'bl-content'.DS.'databases'.DS.'plugins'.DS.'imagegallery-lite'.DS.'db.php';
