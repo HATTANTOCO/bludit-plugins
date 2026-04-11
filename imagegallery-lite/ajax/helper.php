@@ -2,7 +2,7 @@
 /**
  * AJAX requests helper functions for Bludit Image Gallery Lite
  * @author    novafacile OÜ
- * @copyright 2022 by novafacile OÜ
+ * @copyright 2022-2026 by novafacile OÜ
  * @license   AGPL-3.0
  * @see       https://bludit-plugins.com
  * This program is distributed in the hope that it will be useful - WITHOUT ANY WARRANTY.
