@@ -2,7 +2,7 @@
 /**
  * AJAX helper for novafacile Bludit Plugins
  * @author    novafacile OÜ
- * @copyright 2022 by novafacile OÜ
+ * @copyright 2022-2026 by novafacile OÜ
  * @license   MIT
  * @see       https://bludit-plugins.com
  * This program is distributed in the hope that it will be useful - WITHOUT ANY WARRANTY.
@@ -13,27 +13,29 @@ class AJAX {
   static function setHeader(){
     header('Content-Type: application/json');
   }
-  
+
   static function auth(){
     self::checkSession();
     self::checkRole();
     self::checkCSRF();
   }
 
-  private static function checkSession(){
-    $sessionName = 'BLUDIT-KEY';
-    $isHTTPS = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || 
-               (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443) ||
+  private static function isHTTPS() : bool {
+    $isHTTPS = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
                (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
-    
-    if ($isHTTPS) {
-      $sessionName = '__Secure-' . $sessionName;
+    return $isHTTPS;
     }
+
+  private static function checkSession(){
+    // Load Session Handling
+    $basePath = dirname( __FILE__, 4); // Bludit3 Base
+    define('SESSION_GC_MAXLIFETIME', 3600); // Session timeout server side, gc_maxlifetime (3600 = 1hour)
+    require $basePath.DS.'bl-kernel'.DS.'helpers'.DS.'session.class.php';
     
-    session_name($sessionName);
-    session_start();
-    if(!isset($_SESSION['s_role'])){
-      self::exit(401);
+    // Todo: Session start don't work well, if path is set and if no url is set in settings
+    Session::start('', self::isHTTPS());
+    if (Session::started()===false) {
+	    self::exit(401, 'Session initialization failed.');
     }
   }
 
@@ -45,11 +47,12 @@ class AJAX {
   }
 
   public static function checkCSRF(){
-    if(!isset($_SESSION['s_tokenCSRF']) || !isset($_POST['tokenCSRF'])){
+    if(!isset($_SESSION['s_tokenCSRF'])){
       self::exit(401);
     }
-    if($_SESSION['s_tokenCSRF'] != $_POST['tokenCSRF']){
-     self::exit(401); 
+   
+    if($_POST['tokenCSRF'] !== $_SESSION['s_tokenCSRF']){
+      self::exit(401);
     }
   }
 
