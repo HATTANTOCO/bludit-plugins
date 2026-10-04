@@ -426,7 +426,11 @@ class pluginContact3 extends Plugin {
       }
 
       // send email
-      require __DIR__ . DS . 'phpmailer' . DS . 'PHPMailerAutoload.php';
+      // FIXED: Correct loading method for PHPMailer 7.x/6.x
+      require __DIR__ . DS . 'phpmailer' . DS . 'Exception.php';
+      require __DIR__ . DS . 'phpmailer' . DS . 'PHPMailer.php';
+      require __DIR__ . DS . 'phpmailer' . DS . 'SMTP.php';
+
       $receiverMail = $this->getValue('email');
       $receiverName = $this->getValue('name');
       switch ($this->getValue('sendEmailFrom')){ // Set email FROM address
@@ -575,7 +579,8 @@ class pluginContact3 extends Plugin {
 
   private function sendEmail($receiverMail, $receiverName, $subject, $senderEmail, $senderName = '', $replayToEmail = false, $replayToName = ''){
     try {
-      $mail = new PHPMailer();
+      // FIXED: Instantiate using the correct namespace for PHPMailer v7.x
+      $mail = new \PHPMailer\PHPMailer\PHPMailer();
       
       if($this->getValue('smtphost')) {
         $mail->isSMTP();
@@ -583,16 +588,18 @@ class pluginContact3 extends Plugin {
         $mail->Port = $this->getValue('smtpport');
         switch ($this->getValue('smtpencryption')) {
           case 'starttls':
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            // Updated to v7.x constant definition
+            $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
           break;
           case 'smtps':
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            // Updated to v7.x constant definition
+            $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
             break;
         }
          
         $mail->SMTPAuth = true;
         $mail->Username = $this->getValue('username');
-        $mail->Password = html_entity_decode($this->getValue('password')); // Function is needed if password contains special characters like '&'
+        $mail->Password = html_entity_decode($this->getValue('password')); // Required if password contains special characters like '&'
       }
 
       $mail->setFrom($senderEmail, $senderName);
@@ -608,7 +615,7 @@ class pluginContact3 extends Plugin {
 
       return $mail->send();
 
-    } catch (Exception $e){
+    } catch (\Exception $e){ // Correctly catch Exception from the global namespace
       $return = false;
     }
   }
