@@ -588,11 +588,11 @@ class pluginContact3 extends Plugin {
         $mail->Port = $this->getValue('smtpport');
         switch ($this->getValue('smtpencryption')) {
           case 'starttls':
-            // Updated to v7.x constant definition
+            // FIXED: Updated to v7.x constant definition
             $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
           break;
           case 'smtps':
-            // Updated to v7.x constant definition
+            // FIXED: Updated to v7.x constant definition
             $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
             break;
         }
@@ -603,6 +603,10 @@ class pluginContact3 extends Plugin {
       }
 
       $mail->setFrom($senderEmail, $senderName);
+      
+      // ADDED: Set the Envelope-From address to PASS the SPF record check (-f option equivalent)
+      $mail->Sender = $senderEmail;
+
       $mail->addAddress($receiverMail, $receiverName);
       if($replayToEmail){
         $mail->addReplyTo($replayToEmail, $replayToName);
@@ -613,9 +617,12 @@ class pluginContact3 extends Plugin {
       $mail->isHTML($this->isHTML());
       $mail->Body = $this->getEmailText();
 
+      // ADDED: Force PHPMailer to generate a valid, RFC-compliant Message-ID
+      $mail->MessageID = ''; 
+
       return $mail->send();
 
-    } catch (\Exception $e){ // Correctly catch Exception from the global namespace
+    } catch (\Exception $e){ // FIXED: Correctly catch Exception from the global namespace
       $return = false;
     }
   }
